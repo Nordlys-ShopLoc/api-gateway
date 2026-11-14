@@ -46,3 +46,22 @@ docker build -t api-gateway:local .
 ## Contribuer
 
 Une branche `feature/...` par user story, créée depuis `develop`. Commits au format Conventional Commits, en anglais. Pull request vers `develop`, relue par un autre membre, avec la CI au vert.
+
+## Sécurité
+
+La gateway vérifie le jeton JWT de chaque requête, sauf sur les routes publiques :
+
+| Méthode | Route |
+|---|---|
+| POST | /api/v1/auth/login |
+| POST | /api/v1/accounts/register |
+| GET | /api/v1/shops/** |
+
+Sans jeton valide, elle répond 401. Avec un jeton valide, elle transmet l'identité au service dans deux en-têtes, en remplaçant ceux que le client aurait envoyés :
+
+- `X-User-Id` : l'identifiant du compte ;
+- `X-User-Role` : son rôle (CLIENT, MERCHANT, CITY_ADMIN, POLICE ou ADMIN).
+
+Ce que l'utilisateur a le droit de faire est vérifié dans chaque service, pas dans la gateway.
+
+La gateway a besoin de la variable `JWT_SECRET` : la même clé que service-accounts, d'au moins 32 caractères.
